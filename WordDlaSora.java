@@ -8,7 +8,7 @@ public class WordDlaSora {
 
     public static void main(String[] args) {
         JFrame okno = new JFrame("Word");
-        okno.setSize(700, 500);
+        okno.setSize(1600, 800);
         okno.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         okno.setLayout(new BorderLayout());
 
@@ -33,12 +33,38 @@ public class WordDlaSora {
         JComboBox<Integer> listaRozmiarow = new JComboBox<>(rozmiary);
         listaRozmiarow.setSelectedItem(14);
 
+        JToggleButton pogrubienie = new JToggleButton("Pogrubienie");
+        JToggleButton kursywa = new JToggleButton("Kursywa");
+
         JButton kolorTekstu = new JButton("Kolor tekstu");
         JButton kolorTla = new JButton("Kolor tła");
 
+        JButton kopiuj = new JButton("Kopiuj");
+        JButton wytnij = new JButton("Wytnij");
+        JButton wklej = new JButton("Wklej");
+
+        final Font[] aktualnaCzcionka = {new Font("Arial", Font.PLAIN, 14)};
+
         listaRozmiarow.addActionListener(e -> {
             int rozmiar = (Integer) listaRozmiarow.getSelectedItem();
-            pole.setFont(new Font("Arial", Font.PLAIN, rozmiar));
+            aktualnaCzcionka[0] = aktualnaCzcionka[0].deriveFont((float) rozmiar);
+            pole.setFont(aktualnaCzcionka[0]);
+        });
+
+        pogrubienie.addActionListener(e -> {
+            int styl = Font.PLAIN;
+            if (pogrubienie.isSelected()) styl |= Font.BOLD;
+            if (kursywa.isSelected()) styl |= Font.ITALIC;
+            aktualnaCzcionka[0] = new Font("Arial", styl, aktualnaCzcionka[0].getSize());
+            pole.setFont(aktualnaCzcionka[0]);
+        });
+
+        kursywa.addActionListener(e -> {
+            int styl = Font.PLAIN;
+            if (pogrubienie.isSelected()) styl |= Font.BOLD;
+            if (kursywa.isSelected()) styl |= Font.ITALIC;
+            aktualnaCzcionka[0] = new Font("Arial", styl, aktualnaCzcionka[0].getSize());
+            pole.setFont(aktualnaCzcionka[0]);
         });
 
         kolorTekstu.addActionListener(e -> {
@@ -51,11 +77,20 @@ public class WordDlaSora {
             if (nowyKolor != null) pole.setBackground(nowyKolor);
         });
 
+        kopiuj.addActionListener(e -> pole.copy());
+        wytnij.addActionListener(e -> pole.cut());
+        wklej.addActionListener(e -> pole.paste());
+
         JPanel gornyPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         gornyPanel.add(new JLabel("Rozmiar:"));
         gornyPanel.add(listaRozmiarow);
+        gornyPanel.add(pogrubienie);
+        gornyPanel.add(kursywa);
         gornyPanel.add(kolorTekstu);
         gornyPanel.add(kolorTla);
+        gornyPanel.add(kopiuj);
+        gornyPanel.add(wytnij);
+        gornyPanel.add(wklej);
 
         okno.add(gornyPanel, BorderLayout.NORTH);
 
