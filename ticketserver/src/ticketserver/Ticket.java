@@ -19,7 +19,7 @@ public class Ticket implements Serializable {
         this.reg = reg.toUpperCase();
         this.hours = hours;
         this.rate = rate;
-        this.total = rate * hours;
+        this.total = hours * rate; // kwota za faktyczny czas postoju
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         LocalDateTime now = LocalDateTime.now();
