@@ -7,28 +7,29 @@ import java.awt.*;
 
 public class ClientMain extends JFrame {
     private JTextField tfReg;
-    private JTextField tfHours;
+    private JTextField tfAmount;
     private JTextArea area;
     private JButton btnBuy;
+    private JButton btnShow;
     private JLabel lblRate;
     private static final double RATE = 5.0;
 
     public ClientMain() {
         super("Klient - Bilet Parkingowy");
-        setSize(450, 375);
+        setSize(450, 450);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        JPanel panelTop = new JPanel(new GridLayout(4, 2, 8, 8));
+        JPanel panelTop = new JPanel(new GridLayout(5, 2, 8, 8));
         panelTop.setBorder(BorderFactory.createTitledBorder("Dane biletu"));
 
         panelTop.add(new JLabel("Numer rejestracyjny:"));
         tfReg = new JTextField();
         panelTop.add(tfReg);
 
-        panelTop.add(new JLabel("Czas postoju (h):"));
-        tfHours = new JTextField();
-        panelTop.add(tfHours);
+        panelTop.add(new JLabel("Kwota do zapłaty (PLN):"));
+        tfAmount = new JTextField();
+        panelTop.add(tfAmount);
 
         panelTop.add(new JLabel("Cena za godzinę:"));
         lblRate = new JLabel(String.format("%.2f PLN", RATE));
@@ -37,6 +38,10 @@ public class ClientMain extends JFrame {
         btnBuy = new JButton("Kup bilet");
         panelTop.add(new JLabel());
         panelTop.add(btnBuy);
+
+        btnShow = new JButton("Pokaż wszystkie bilety");
+        panelTop.add(new JLabel());
+        panelTop.add(btnShow);
 
         area = new JTextArea();
         area.setEditable(false);
@@ -47,23 +52,24 @@ public class ClientMain extends JFrame {
         add(new JScrollPane(area), BorderLayout.CENTER);
 
         btnBuy.addActionListener(e -> sendTicketRequest());
+        btnShow.addActionListener(e -> showTickets());
     }
 
     private void sendTicketRequest() {
         String reg = tfReg.getText().trim().toUpperCase();
-        String hoursStr = tfHours.getText().trim();
+        String amountStr = tfAmount.getText().trim();
 
         if (reg.length() != 8) {
             area.setText("Błąd: numer rejestracyjny musi mieć dokładnie 8 znaków!");
             return;
         }
 
-        int hours;
+        double amount;
         try {
-            hours = Integer.parseInt(hoursStr);
-            if (hours <= 0) throw new NumberFormatException();
+            amount = Double.parseDouble(amountStr);
+            if (amount <= 0) throw new NumberFormatException();
         } catch (NumberFormatException e) {
-            area.setText("Błąd: podaj poprawną liczbę godzin (dodatnią)!");
+            area.setText("Błąd: podaj poprawną kwotę (dodatnią)!");
             return;
         }
 
@@ -71,7 +77,7 @@ public class ClientMain extends JFrame {
              BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
              PrintWriter out = new PrintWriter(socket.getOutputStream(), true)) {
 
-            out.println(reg + "," + hours);
+            out.println(reg + "," + amount);
 
             StringBuilder response = new StringBuilder();
             String line;
@@ -79,6 +85,30 @@ public class ClientMain extends JFrame {
                 response.append(line).append("\n");
             }
 
+            area.setText(response.toString());
+
+        } catch (IOException ex) {
+            area.setText("Błąd połączenia z serwerem: " + ex.getMessage());
+        }
+    }
+
+    private void showTickets() {
+        String reg = tfReg.getText().trim().toUpperCase();
+        if (reg.length() != 8) {
+            area.setText("Błąd: numer rejestracyjny musi mieć dokładnie 8 znaków!");
+            return;
+        }
+        try (Socket socket = new Socket("localhost", 5000);
+             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+             PrintWriter out = new PrintWriter(socket.getOutputStream(), true)) {
+
+            out.println("SHOW," + reg);
+
+            StringBuilder response = new StringBuilder();
+            String line;
+            while ((line = in.readLine()) != null) {
+                response.append(line).append("\n");
+            }
             area.setText(response.toString());
 
         } catch (IOException ex) {
