@@ -38,15 +38,58 @@ public class ServerMain {
                 if (message == null) return;
 
                 String[] parts = message.split(",");
+
+                if (parts.length == 2 && parts[0].equalsIgnoreCase("SHOW")) {
+                    String reg = parts[1].trim().toUpperCase();
+                    List<Ticket> found = new ArrayList<>();
+                    synchronized (tickets) {
+                        for (Ticket t : tickets) {
+                            if (t.getReg().equals(reg)) {
+                                found.add(t);
+                            }
+                        }
+                    }
+                    if (found.isEmpty()) {
+                        out.println("Brak biletów dla rejestracji: " + reg);
+                    } else {
+                        for (Ticket t : found) {
+                            out.println(t);
+                            out.println("--------------------------------------------------------");
+                        }
+                    }
+                    return;
+                }
+
                 if (parts.length == 2) {
                     String reg = parts[0].trim().toUpperCase();
-                    int hours = Integer.parseInt(parts[1].trim());
+                    double amount = Double.parseDouble(parts[1].trim());
+
+                    if (amount <= 0) {
+                        out.println("Błąd: kwota musi być większa od zera!");
+                        return;
+                    }
+
+                    int hours = (int) Math.floor(amount / RATE);
+                    double change = amount - (hours * RATE);
+
+                    if (hours == 0) {
+                        out.println("Kwota jest zbyt mała na pełną godzinę postoju!");
+                        if (change > 0) {
+                            out.printf("Reszta do wydania: %.2f PLN\n", change);
+                        }
+                        return;
+                    }
 
                     Ticket ticket = new Ticket(reg, hours, RATE);
                     tickets.add(ticket);
 
                     out.println(formatSimpleTicket(ticket));
-                    System.out.println("Wystawiono bilet: " + reg);
+                    if (change > 0) {
+                        out.printf("Reszta do wydania: %.2f PLN\n", change);
+                    }
+
+                    System.out.println("Wystawiono bilet: " + reg + " (" + hours + "h), reszta: " + change);
+
                 } else {
                     out.println("Błąd danych wejściowych");
                 }
