@@ -19,12 +19,10 @@ public class Ticket implements Serializable {
         this.reg = reg.toUpperCase();
         this.hours = hours;
         this.rate = rate;
-        this.total = hours * rate; // kwota za faktyczny czas postoju
-
+        this.total = hours * rate;
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime expire = now.plusHours(hours);
-
         this.issuedAt = now.format(formatter);
         this.expiresAt = expire.format(formatter);
     }
@@ -36,6 +34,10 @@ public class Ticket implements Serializable {
     public double getTotal() { return total; }
     public String getIssuedAt() { return issuedAt; }
     public String getExpiresAt() { return expiresAt; }
+
+    public boolean isActive() {
+        return LocalDateTime.now().isBefore(LocalDateTime.parse(expiresAt, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
+    }
 
     @Override
     public String toString() {
